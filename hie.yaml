@@ -1,0 +1,12 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "exe:auspex"
+    - path: "example-app"
+      component: "exe:example-app"
+    - path: "client"
+      component: "exe:auspex-client"
+    - path: "lib"
+      component: "lib:auspex-lib"
+    - path: "test"
+      component: "test:auspex-test"

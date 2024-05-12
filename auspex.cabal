@@ -1,0 +1,169 @@
+cabal-version:      2.4
+name:               auspex
+version:            0.1.0.0
+license:            MIT
+copyright:          2022 head-hardener
+maintainer:         trashbin2019np@gmail.com
+author:             Head Gardener
+category:           Web
+synopsis:           Challenge-based authorization showcase
+
+-- description:
+
+-- bug-reports:
+
+extra-source-files:
+  LICENSE
+  README.md
+
+common shared
+  ghc-options:
+    -Wall -Wincomplete-record-updates -Wincomplete-uni-patterns
+    -Wmissing-deriving-strategies -Wunused-foralls -Wunused-foralls
+    -fprint-explicit-foralls -fprint-explicit-kinds -threaded
+
+  mixins:
+    base hiding (Prelude),
+    relude (Relude as Prelude, Relude.Container.One),
+    relude
+
+  default-extensions:
+    BangPatterns
+    ConstraintKinds
+    DataKinds
+    DeriveDataTypeable
+    DeriveFoldable
+    DeriveFunctor
+    DeriveGeneric
+    DeriveLift
+    DeriveTraversable
+    DerivingStrategies
+    DerivingVia
+    EmptyCase
+    EmptyDataDecls
+    EmptyDataDeriving
+    ExistentialQuantification
+    ExplicitForAll
+    FlexibleContexts
+    FlexibleInstances
+    GADTSyntax
+    GeneralisedNewtypeDeriving
+    ImportQualifiedPost
+    KindSignatures
+    LambdaCase
+    MultiParamTypeClasses
+    MultiWayIf
+    NoStarIsType
+    NumericUnderscores
+    OverloadedStrings
+    PolyKinds
+    PostfixOperators
+    RankNTypes
+    ScopedTypeVariables
+    StandaloneDeriving
+    StandaloneKindSignatures
+    TupleSections
+    TypeApplications
+    TypeFamilies
+    TypeOperators
+    ViewPatterns
+
+  build-depends:
+    , aeson
+    , appar
+    , async
+    , base                      >=4   && <5
+    , base64-bytestring
+    , bytestring
+    , bytestring-aeson-orphans
+    , containers
+    , cookie
+    , crypton
+    , data-default
+    , directory
+    , filepath
+    , http-types
+    , jwt
+    , memory
+    , mtl
+    , optics-core
+    , profunctors
+    , relude                    >=1.0
+    , shower
+    , time
+    , vault
+    , wai
+    , wai-extra
+    , wai-session
+    , warp
+    , with-utf8
+
+  default-language:   Haskell2010
+
+library auspex-lib
+  import:          shared
+  hs-source-dirs:  lib
+  build-depends:
+
+  -- cabal-fmt: expand lib
+  --
+  exposed-modules:
+    Crypto.Error.Utils
+    Crypto.PubKey.Ed25519.OpenSSH
+    Data.Challenge
+
+executable example-app
+  import:             shared
+  default-extensions:
+    QuasiQuotes
+    TemplateHaskell
+
+  exposed-modules:
+    Application
+    Foundation
+    Routes
+
+  main-is:            Main.hs
+  ghc-options:        -threaded -rtsopts -with-rtsopts=-N
+  hs-source-dirs:     example-app
+  build-depends:
+    , auspex-lib
+    , yesod-auth
+    , yesod-core
+    , yesod-form
+
+executable auspex-client
+  import:         shared
+  main-is:        Main.hs
+  hs-source-dirs: client
+  build-depends:
+    , auspex-lib
+    , http-client-tls
+    , http-conduit
+
+executable auspex
+  import:         shared
+  main-is:        Main.hs
+  hs-source-dirs: src
+  build-depends:
+    , auspex-lib
+    , clientsession
+    , lens
+
+test-suite auspex-test
+  import:         shared
+  type:           exitcode-stdio-1.0
+  hs-source-dirs: test
+  main-is:        Spec.hs
+  other-modules:  Data.Challenge.ChallengeSpec
+  build-depends:
+    , auspex-lib
+    , base
+    , hspec
+    , QuickCheck
+
+  ghc-options:
+    -Wall -Wcompat -Widentities -Wincomplete-record-updates
+    -Wincomplete-uni-patterns -Wmissing-export-lists
+    -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+    -rtsopts -with-rtsopts=-N
