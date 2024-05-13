@@ -1,6 +1,7 @@
 * TODO
   - (x) Sign JWT with RSA, advertise key
-  - ( ) Env configuration
   - ( ) More tests
+  - ( ) Register users
+  - ( ) Env configuration
   - ( ) Containers via nix
   - ( ) Le Cluster

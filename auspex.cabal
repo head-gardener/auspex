@@ -109,6 +109,7 @@ library auspex-lib
     , http-conduit
     , yesod-auth
     , yesod-core
+    , lens
 
   -- cabal-fmt: expand lib
   --
@@ -117,6 +118,7 @@ library auspex-lib
     Crypto.PubKey.Ed25519.OpenSSH
     Data.Challenge
     Web.JWT.Encode
+    Web.Auspex.Provider
     Yesod.Auth.Auspex
 
 executable example-app
@@ -155,7 +157,6 @@ executable auspex
   build-depends:
     , auspex-lib
     , clientsession
-    , lens
 
 test-suite auspex-test
   import:         shared
