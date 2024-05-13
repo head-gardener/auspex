@@ -105,6 +105,10 @@ library auspex-lib
   import:          shared
   hs-source-dirs:  lib
   build-depends:
+    , http-client-tls
+    , http-conduit
+    , yesod-auth
+    , yesod-core
 
   -- cabal-fmt: expand lib
   --
@@ -113,6 +117,7 @@ library auspex-lib
     Crypto.PubKey.Ed25519.OpenSSH
     Data.Challenge
     Web.JWT.Encode
+    Yesod.Auth.Auspex
 
 executable example-app
   import:             shared
@@ -132,8 +137,6 @@ executable example-app
     , auspex-lib
     , yesod-auth
     , yesod-core
-    , http-client-tls
-    , http-conduit
     , yesod-form
 
 executable auspex-client
