@@ -78,7 +78,7 @@ common shared
     , bytestring-aeson-orphans
     , containers
     , cookie
-    , crypton
+    , cryptonite
     , data-default
     , directory
     , filepath
@@ -90,6 +90,7 @@ common shared
     , profunctors
     , relude                    >=1.0
     , shower
+    , text
     , time
     , vault
     , wai
@@ -111,6 +112,7 @@ library auspex-lib
     Crypto.Error.Utils
     Crypto.PubKey.Ed25519.OpenSSH
     Data.Challenge
+    Web.JWT.Encode
 
 executable example-app
   import:             shared
@@ -130,6 +132,8 @@ executable example-app
     , auspex-lib
     , yesod-auth
     , yesod-core
+    , http-client-tls
+    , http-conduit
     , yesod-form
 
 executable auspex-client

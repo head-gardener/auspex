@@ -1,0 +1,6 @@
+* TODO
+  - (x) Sign JWT with RSA, advertise key
+  - ( ) Env configuration
+  - ( ) More tests
+  - ( ) Containers via nix
+  - ( ) Le Cluster

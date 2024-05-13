@@ -20,7 +20,6 @@ main = do
   -- solve challenge
   chl <- maybe (die "Can't parse challenge") return $ decode challenge
   let resp = solve secret public chl
-  print $ toJSON resp
 
   let params = setRequestHeader hAuthorization ["user"] . setRequestBodyLBS (encode resp)
   response <- httpLBS $ params "POST http://localhost:8080"
