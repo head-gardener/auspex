@@ -32,7 +32,8 @@ class (YesodAuth site) => YesodAuthAuspex site where
   storeVerifier _ _ = pass
   getVerifier _ = return Nothing
 
-acquireVerifier :: (YesodAuthAuspex site) => Text -> AuthHandler site (Maybe JWT.VerifySigner)
+acquireVerifier ::
+  (YesodAuthAuspex site) => Text -> AuthHandler site (Maybe JWT.VerifySigner)
 acquireVerifier p =
   runMaybeT $
     MaybeT (getVerifier p) <|> do
@@ -43,39 +44,41 @@ acquireVerifier p =
       lift $ storeVerifier p v
       return v
 
-{- | Auspex authentication plugin.
--}
-authAuspex :: (RenderRoute m, YesodAuth m, YesodAuthAuspex m)
-  => Text -- ^ provider address, e.g. "https://auspex.example.org"
-  -> AuthPlugin m
+-- | Auspex authentication plugin.
+authAuspex ::
+  (RenderRoute m, YesodAuth m, YesodAuthAuspex m) =>
+  -- | provider address, e.g. "https://auspex.example.org"
+  Text ->
+  AuthPlugin m
 authAuspex provider = AuthPlugin "auspex" dispatch loginWidget
- where
-  dispatch :: (YesodAuthAuspex m) => Text -> [Text] -> AuthHandler m TypedContent
-  dispatch "GET" ["login"] = verifyJWT
-  dispatch _ _ = notFound
+  where
+    dispatch :: (YesodAuthAuspex m) => Text -> [Text] -> AuthHandler m TypedContent
+    dispatch "GET" ["login"] = verifyJWT
+    dispatch _ _ = notFound
 
-  loginR = PluginR "auspex" ["login"]
+    loginR = PluginR "auspex" ["login"]
 
-  loginWidget toMaster = do
-    render <- getUrlRender
-    let rdr :: Text = decodeUtf8 $ urlEncode True $ encodeUtf8 $ render $ toMaster loginR
-    [whamlet|
+    loginWidget toMaster = do
+      render <- getUrlRender
+      let rdr :: Text = decodeUtf8 $ urlEncode True $ encodeUtf8 $ render $ toMaster loginR
+      [whamlet|
         $newline never
           <a href="#{provider}/?callback=#{rdr}">
             <button .btn .btn-success> _{Msg.LoginTitle}
         |]
 
-  verifyJWT :: (YesodAuthAuspex m) => AuthHandler m TypedContent
-  verifyJWT = do
-    v <- acquireVerifier provider
-    key <-
-      maybe
-        (sendResponseStatus status500 ("Couldn't acquire provider's credentials" :: Text))
-        return
-        v
-    token <-
-      maybe (sendResponseStatus status400 ("No token" :: Text)) return
-        =<< lookupGetParam "token"
-    case JWT.sub . JWT.claims =<< JWT.verify key =<< JWT.decode token of
-      Just subj -> setCredsRedirect $ Creds "auspex" (JWT.stringOrURIToText subj) []
-      Nothing -> sendResponseStatus status401 ("Invalid token" :: Text)
+    verifyJWT :: (YesodAuthAuspex m) => AuthHandler m TypedContent
+    verifyJWT = do
+      v <- acquireVerifier provider
+      key <-
+        maybe
+          ( sendResponseStatus status500 ("Couldn't acquire provider's credentials" :: Text)
+          )
+          return
+          v
+      token <-
+        maybe (sendResponseStatus status400 ("No token" :: Text)) return
+          =<< lookupGetParam "token"
+      case JWT.sub . JWT.claims =<< JWT.verify key =<< JWT.decode token of
+        Just subj -> setCredsRedirect $ Creds "auspex" (JWT.stringOrURIToText subj) []
+        Nothing -> sendResponseStatus status401 ("Invalid token" :: Text)

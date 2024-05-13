@@ -40,7 +40,12 @@
           programs.fourmolu.package = config.fourmolu.wrapper;
           programs.nixpkgs-fmt.enable = true;
           programs.cabal-fmt.enable = true;
-          programs.hlint.enable = true;
+
+          settings.formatter.hlint = {
+            command = pkgs.hlint;
+            options = [ "-j" "-X" "QuasiQuotes" "-X" "TemplateHaskell" ];
+            includes = [ "*.hs" ];
+          };
         };
 
         fourmolu.settings = {

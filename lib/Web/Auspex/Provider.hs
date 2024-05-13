@@ -1,12 +1,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Web.Auspex.Provider
-  ( auspexServer,
-    User (..),
-    AuspexConfig (..),
-    AppState,
-    AppState' (..),
-  )
+module Web.Auspex.Provider (
+  auspexServer,
+  User (..),
+  AuspexConfig (..),
+  AppState,
+  AppState' (..),
+)
 where
 
 import Control.Lens
@@ -30,10 +30,10 @@ type App = AuspexConfig -> AppState -> Application
 type AppState = TVar AppState'
 
 data AuspexConfig = AppConfig
-  { edSecretKey :: Ed.SecretKey,
-    edPublicKey :: Ed.PublicKey,
-    rsaEncoder :: JWT.EncodeSigner,
-    rsaVerifier :: JWT.VerifySigner
+  { edSecretKey :: Ed.SecretKey
+  , edPublicKey :: Ed.PublicKey
+  , rsaEncoder :: JWT.EncodeSigner
+  , rsaVerifier :: JWT.VerifySigner
   }
 
 newtype AppState' = AppState'
@@ -98,8 +98,8 @@ handlePost cfg st request respond = do
     let expirationTime = currentTime + 3600
     let claims =
           mempty
-            { JWT.sub = JWT.stringOrURI $ decodeUtf8 providedName,
-              JWT.exp = JWT.numericDate expirationTime
+            { JWT.sub = JWT.stringOrURI $ decodeUtf8 providedName
+            , JWT.exp = JWT.numericDate expirationTime
             }
     let tok = JWT.encodeSigned (rsaEncoder cfg) mempty claims
     let cb = callback chl <> "/?token=" <> encodeUtf8 tok

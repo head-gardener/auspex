@@ -1,9 +1,10 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# OPTIONS_GHC -Wno-missing-deriving-strategies #-}
 
 module Foundation where
 
-import Yesod.Auth.Auspex
 import Yesod.Auth
+import Yesod.Auth.Auspex
 import Yesod.Core
 import Yesod.Form (FormMessage, defaultFormMessage)
 
@@ -35,4 +36,4 @@ instance YesodAuth App where
   authPlugins _ = [authAuspex "http://localhost:8080"]
   maybeAuthId = lookupSession "_ID"
 
-instance YesodAuthAuspex App where
+instance YesodAuthAuspex App

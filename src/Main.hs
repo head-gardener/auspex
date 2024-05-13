@@ -1,10 +1,10 @@
 module Main (main) where
 
-import Web.Auspex.Provider
 import Crypto.PubKey.Ed25519.OpenSSH (readKeys)
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.HealthCheckEndpoint (healthCheck)
 import Network.Wai.Middleware.RequestLogger
+import Web.Auspex.Provider
 import Web.JWT qualified as JWT
 
 main :: IO ()
