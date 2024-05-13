@@ -27,6 +27,6 @@ main = do
       )
       =<< readFileBS rsaPPath
   (sec, pub) <- readKeys edPath >>= maybe (die $ "Can't parse" <> edPath) return
-  st <- newTVarIO $ AppState' (fromList [("user", User pub)])
+  st <- newTVarIO $ AppState' mempty
   let cfg = AppConfig sec pub rsaS rsaV
   run 8080 $ logStdout $ healthCheck $ auspexServer cfg st

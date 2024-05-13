@@ -9,7 +9,9 @@ module Web.Auspex.Provider (
 )
 where
 
+import ByteString.Aeson.Orphans ()
 import Control.Lens
+import Crypto.Error (CryptoFailable (CryptoFailed, CryptoPassed))
 import Crypto.PubKey.Ed25519 qualified as Ed
 import Crypto.Random (MonadRandom (getRandomBytes))
 import Data.Aeson
@@ -50,6 +52,10 @@ auspexServer cfg st request respond = do
       "GET" -> handleGet cfg st request respond
       "POST" -> handlePost cfg st request respond
       _ -> respond405 respond
+    ["register"] -> case requestMethod request of
+      "GET" -> respond $ responseLBS status200 [] "Please Register :)"
+      "POST" -> handleRegistration cfg st request respond
+      _ -> respond405 respond
     ["key"] -> case requestMethod request of
       "GET" -> case encodeVerifier $ rsaVerifier cfg of
         Just s -> respond $ responseLBS status200 [] s
@@ -61,6 +67,25 @@ respond404, respond405, respond500 :: forall {b}. (Response -> b) -> b
 respond404 respond = respond $ responseLBS status404 [] "Not found"
 respond405 respond = respond $ responseLBS status405 [] "Unsupported method"
 respond500 respond = respond $ responseLBS status500 [] "Internal Error"
+
+handleRegistration :: App
+handleRegistration _ st request respond = do
+  bod <- lazyRequestBody request
+  let creds = do
+        (n :: Text, key :: ByteString) <- decode bod
+        k <- case Ed.publicKey key of
+          CryptoPassed a -> Just a
+          CryptoFailed _ -> Nothing
+        return (encodeUtf8 n, k)
+  case creds of
+    Nothing -> respond $ responseLBS status400 [] "Can't parse response"
+    Just (n, k) -> do
+      exists <- isJust . view (users . at n) <$> readTVarIO st
+      if exists
+        then respond $ responseLBS status400 [] "Name taken"
+        else do
+          atomically $ modifyTVar' st $ set (users . at n) (Just $ User k)
+          respond $ responseLBS status200 [] ""
 
 handleGet :: App
 handleGet cfg _ request respond = do
@@ -90,7 +115,7 @@ handlePost cfg st request respond = do
     chl <-
       hoistMaybe' (responseLBS status400 [] "Can't parse response") $ decode bod
     clientKey <-
-      hoistMaybe' (responseLBS status400 [] "You are gay")
+      hoistMaybe' (responseLBS status400 [] "User not found")
         . fmap (view ownerPublic)
         . view (users . at providedName)
         =<< liftIO (readTVarIO st)

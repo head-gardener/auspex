@@ -5,6 +5,7 @@ module Web.Auspex.ProviderSpec (main, spec) where
 import Crypto.PubKey.Ed25519 qualified as Ed
 import Crypto.PubKey.Ed25519.OpenSSH
 import Data.Aeson
+import Data.ByteArray qualified as BA
 import Data.Challenge
 import Data.Maybe (fromJust)
 import GHC.IO (unsafePerformIO)
@@ -59,6 +60,17 @@ spec = with newApp $ do
         solve edSec edPub . fromJust . decode . simpleBody
           <$> get "/?callback=callback"
       request methodPost "/" [(hAuthorization, "user")] (encode ch)
+        `shouldRespondWith` "" {matchStatus = 303}
+
+    it "can register and authorize a new user" $ do
+      post "/register" "qew"
+        `shouldRespondWith` "Can't parse response" {matchStatus = 400}
+      post "/register" (encode ("new-user" :: Text, BA.convert edPub :: ByteString))
+        `shouldRespondWith` "" {matchStatus = 200}
+      ch <-
+        solve edSec edPub . fromJust . decode . simpleBody
+          <$> get "/?callback=callback"
+      request methodPost "/" [(hAuthorization, "new-user")] (encode ch)
         `shouldRespondWith` "" {matchStatus = 303}
 
     it "can detect challenge tampering" $ do
