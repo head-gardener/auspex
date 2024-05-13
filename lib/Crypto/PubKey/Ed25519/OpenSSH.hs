@@ -1,4 +1,4 @@
-module Crypto.PubKey.Ed25519.OpenSSH where
+module Crypto.PubKey.Ed25519.OpenSSH (readEdSecret, readEdPublic, readKeys) where
 
 import ByteString.Aeson.Orphans ()
 import Crypto.Error.Utils
@@ -12,10 +12,16 @@ sequencePair :: (Maybe a, Maybe b) -> Maybe (a, b)
 sequencePair (Just a, Just b) = Just (a, b)
 sequencePair _ = Nothing
 
+readEdSecret :: FilePath -> IO (Maybe SecretKey)
+readEdSecret f = parse secretKeyParser <$> readFileBS f
+
+readEdPublic :: FilePath -> IO (Maybe PublicKey)
+readEdPublic f = parse publicKeyParser <$> readFileBS f
+
 readKeys :: FilePath -> IO (Maybe (SecretKey, PublicKey))
 readKeys f = do
-  s <- parse secretKeyParser <$> readFileBS f
-  p <- parse publicKeyParser <$> readFileBS (f <> ".pub")
+  s <- readEdSecret f
+  p <- readEdPublic (f <> ".pub")
   return $ sequencePair (s, p)
 
 secretKeyParser :: Parser SecretKey

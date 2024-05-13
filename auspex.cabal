@@ -163,11 +163,15 @@ test-suite auspex-test
   type:           exitcode-stdio-1.0
   hs-source-dirs: test
   main-is:        Spec.hs
-  other-modules:  Data.Challenge.ChallengeSpec
+  other-modules:
+    Crypto.PubKey.Ed25519.OpenSSHSpec
+    Data.Challenge.ChallengeSpec
+    Web.Auspex.ProviderSpec
+
   build-depends:
     , auspex-lib
-    , base
     , hspec
+    , hspec-wai
     , QuickCheck
 
   ghc-options:

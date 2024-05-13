@@ -1,7 +1,5 @@
 module Data.Challenge.ChallengeSpec (main, spec) where
 
--- import Test.QuickCheck
-
 import Crypto.PubKey.Ed25519.OpenSSH (readKeys)
 import Data.Challenge
 import Test.Hspec
@@ -21,7 +19,3 @@ spec = do
       (sec, pub) <- readKeys edPath >>= maybe (die $ "Can't parse" <> edPath) return
       chl <- newChallenge sec pub "token" "callback"
       return (pub, sec, pub, chl)
-
--- it "is idempotent" $
---   property $
---     \str -> str === (reverse str :: String)

@@ -23,5 +23,5 @@ example:
 client:
     ghcid -c "cabal repl exe:auspex-client" --warnings -T :main
 
-test:
-    ghcid -c "cabal repl test:auspex-test" --test "Main.main"
+test target="Main":
+    ghcid -c "cabal repl test:auspex-test" --test "{{target}}.main"

@@ -1,6 +1,6 @@
 * TODO
   - (x) Sign JWT with RSA, advertise key
-  - ( ) More tests
+  - (x) More tests
   - ( ) Register users
   - ( ) Env configuration
   - ( ) Containers via nix

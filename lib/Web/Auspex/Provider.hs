@@ -104,6 +104,6 @@ handlePost cfg st request respond = do
     let tok = JWT.encodeSigned (rsaEncoder cfg) mempty claims
     let cb = callback chl <> "/?token=" <> encodeUtf8 tok
     if verify (edPublicKey cfg) clientKey chl
-      then return (responseLBS status303 [("Location", cb)] "")
+      then return (responseLBS status303 [(hLocation, cb)] "")
       else return (responseLBS status400 [] "BAD")
   respond resp
