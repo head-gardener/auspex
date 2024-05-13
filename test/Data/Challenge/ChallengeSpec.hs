@@ -6,20 +6,21 @@ import Crypto.PubKey.Ed25519.OpenSSH (readKeys)
 import Data.Challenge
 import Test.Hspec
 
-challenge :: Challenge
-challenge = Challenge Nothing "hello"
-
 main :: IO ()
 main = hspec spec
 
 spec :: Spec
 spec = do
   describe "challenge" $ do
-    before (readKeys "./data/ed25519" >>= maybe (fail "Can't parse") return) $ do
-      it "is solved and verified correctly" $ \(s, p) -> do
-        isCorrect p (solve s p challenge)
-      it "can be converted to a sig" $ \(s, p) -> do
-        isJust (challengeToSig (solve s p challenge))
+    before prep $ do
+      it "is solved and verified correctly" $ \(pp, os, op, chl) -> do
+        verify op pp (solve os op chl)
+  where
+    prep = do
+      let edPath = "./data/ed25519"
+      (sec, pub) <- readKeys edPath >>= maybe (die $ "Can't parse" <> edPath) return
+      chl <- newChallenge sec pub "token" "callback"
+      return (pub, sec, pub, chl)
 
 -- it "is idempotent" $
 --   property $
