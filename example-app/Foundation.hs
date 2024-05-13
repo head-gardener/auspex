@@ -10,7 +10,10 @@ import Yesod.Form (FormMessage, defaultFormMessage)
 
 data App = App
 
-mkYesodData "App" $(parseRoutesFile "example-app/routes.yesodroutes")
+mkYesodData "App" [parseRoutes|
+/              HomeR GET
+/auth          AuthR Auth getAuth
+|]
 
 instance Yesod App where
   authRoute _ = Just $ AuthR LoginR

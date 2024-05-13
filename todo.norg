@@ -2,6 +2,8 @@
   - (x) Sign JWT with RSA, advertise key
   - (x) More tests
   - (x) Register users
+  - (x) Fix nix build
+  - ( ) Only build lib and server with nix
   - ( ) HTML interface
   - ( ) Env configuration
   - ( ) Containers via nix

@@ -15,6 +15,10 @@ synopsis:           Challenge-based authorization showcase
 extra-source-files:
   LICENSE
   README.md
+  data/ed25519
+  data/ed25519.pub
+  data/rsa
+  data/rsa.pub
 
 common shared
   ghc-options:
@@ -121,13 +125,21 @@ library auspex-lib
     Web.JWT.Encode
     Yesod.Auth.Auspex
 
+executable auspex
+  import:         shared
+  main-is:        Main.hs
+  hs-source-dirs: src
+  build-depends:
+    , auspex-lib
+    , clientsession
+
 executable example-app
   import:             shared
   default-extensions:
     QuasiQuotes
     TemplateHaskell
 
-  exposed-modules:
+  other-modules:
     Application
     Foundation
     Routes
@@ -149,14 +161,6 @@ executable auspex-client
     , auspex-lib
     , http-client-tls
     , http-conduit
-
-executable auspex
-  import:         shared
-  main-is:        Main.hs
-  hs-source-dirs: src
-  build-depends:
-    , auspex-lib
-    , clientsession
 
 test-suite auspex-test
   import:         shared
