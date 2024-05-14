@@ -14,6 +14,8 @@ synopsis:           Challenge-based authorization showcase
 
 extra-source-files:
   data/ed25519
+  data/ed25519-owner
+  data/ed25519-owner.pub
   data/ed25519.pub
   data/rsa
   data/rsa.pub

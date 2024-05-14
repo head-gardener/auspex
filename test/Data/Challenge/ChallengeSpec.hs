@@ -12,10 +12,12 @@ spec = do
   describe "challenge" $ do
     before prep $ do
       it "is solved and verified correctly" $ \(pp, os, op, chl) -> do
-        verify op pp (solve os op chl)
+        verify pp op (solve os op chl)
   where
     prep = do
       let edPath = "./data/ed25519"
-      (sec, pub) <- readKeys edPath >>= maybe (die $ "Can't parse" <> edPath) return
-      chl <- newChallenge sec pub "token" $ Just "callback"
-      return (pub, sec, pub, chl)
+      let edPathOwner = "./data/ed25519-owner"
+      (secO, pubO) <- readKeys edPathOwner >>= maybe (die "Can't parse") return
+      (secP, pubP) <- readKeys edPath >>= maybe (die "Can't parse") return
+      chl <- newChallenge secP pubP "token" $ Just "callback"
+      return (pubP, secO, pubO, chl)

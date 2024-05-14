@@ -44,9 +44,9 @@ verify providerKey ownerKey c =
     False
     (and . (Ed.verify providerKey c *** Ed.verify ownerKey c))
     $ do
-      o <- rightToMaybe . cfToEither . Ed.signature =<< ownerSignature c
       p <- rightToMaybe . cfToEither . Ed.signature $ providerSignature c
-      return (o, p)
+      o <- rightToMaybe . cfToEither . Ed.signature =<< ownerSignature c
+      return (p, o)
 
 solve :: Ed.SecretKey -> Ed.PublicKey -> Challenge -> Challenge
 solve s p c = c {ownerSignature = Just $ BA.convert $ Ed.sign s p c}

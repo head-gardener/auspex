@@ -27,13 +27,21 @@ import Prelude hiding (get)
 main :: IO ()
 main = hspec spec
 
-{-# NOINLINE edPub #-}
-edPub :: Ed.PublicKey
-edPub = unsafePerformIO (fromJust <$> readEdPublic "./data/ed25519.pub")
+{-# NOINLINE edPubOwner #-}
+edPubOwner :: Ed.PublicKey
+edPubOwner = unsafePerformIO (fromJust <$> readEdPublic "./data/ed25519-owner.pub")
 
-{-# NOINLINE edSec #-}
-edSec :: Ed.SecretKey
-edSec = unsafePerformIO (fromJust <$> readEdSecret "./data/ed25519")
+{-# NOINLINE edSecOwner #-}
+edSecOwner :: Ed.SecretKey
+edSecOwner = unsafePerformIO (fromJust <$> readEdSecret "./data/ed25519-owner")
+
+{-# NOINLINE edPubProvider #-}
+edPubProvider :: Ed.PublicKey
+edPubProvider = unsafePerformIO (fromJust <$> readEdPublic "./data/ed25519.pub")
+
+{-# NOINLINE edSecProvider #-}
+edSecProvider :: Ed.SecretKey
+edSecProvider = unsafePerformIO (fromJust <$> readEdSecret "./data/ed25519")
 
 {-# NOINLINE rsaPub #-}
 rsaPub :: VerifySigner
@@ -50,8 +58,8 @@ rsaSec =
 
 newApp :: IO Application
 newApp = do
-  st <- newTVarIO $ AppState' (fromList [("user", User edPub)])
-  let cfg = AppConfig edSec edPub rsaSec rsaPub
+  st <- newTVarIO $ AppState' (fromList [("user", User edPubOwner)])
+  let cfg = AppConfig edSecProvider edPubProvider rsaSec rsaPub
   return $ auspexServer cfg st
 
 spec :: Spec
@@ -74,7 +82,9 @@ spec = with newApp $ do
       it "can register and authorize a new user" $ do
         post "/register" "qew"
           `shouldRespondWith` "Can't parse response" {matchStatus = 400}
-        post "/register" (encode ("new-user" :: Text, BA.convert edPub :: ByteString))
+        post
+          "/register"
+          (encode ("new-user" :: Text, BA.convert edPubOwner :: ByteString))
           `shouldRespondWith` "" {matchStatus = 200}
         ch <- getChallenge "/?callback=callback"
         request methodPost "/" [(hAuthorization, "new-user")] (encode ch)
@@ -105,7 +115,7 @@ spec = with newApp $ do
         . encodeVerifier
 
     getChallenge :: ByteString -> WaiSession () Challenge
-    getChallenge t = solve edSec edPub . fromJust . decode . simpleBody <$> get t
+    getChallenge t = solve edSecOwner edPubOwner . fromJust . decode . simpleBody <$> get t
 
     request' :: Request -> BL.ByteString -> WaiSession st SResponse
     request' r = WaiSession . lift . T.srequest . SRequest r
