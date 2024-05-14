@@ -161,6 +161,7 @@ executable auspex-client
     , auspex-lib
     , http-client-tls
     , http-conduit
+    , optparse-applicative
 
 test-suite auspex-test
   import:         shared

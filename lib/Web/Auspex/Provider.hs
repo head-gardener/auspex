@@ -41,6 +41,7 @@ data AuspexConfig = AppConfig
 newtype AppState' = AppState'
   { _users :: Map ByteString User
   }
+  deriving stock (Show)
 
 $(makeLenses ''AppState')
 $(makeLenses ''User)
