@@ -111,6 +111,7 @@ library auspex-lib
   build-depends:
     , http-client-tls
     , http-conduit
+    , iproute
     , lens
     , yesod-auth
     , yesod-core
@@ -129,9 +130,7 @@ executable auspex
   import:         shared
   main-is:        Main.hs
   hs-source-dirs: src
-  build-depends:
-    , auspex-lib
-    , clientsession
+  build-depends:  auspex-lib
 
 executable example-app
   import:             shared
@@ -177,6 +176,7 @@ test-suite auspex-test
     , auspex-lib
     , hspec
     , hspec-wai
+    , iproute
     , QuickCheck
 
   ghc-options:

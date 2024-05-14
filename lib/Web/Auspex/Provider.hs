@@ -10,22 +10,28 @@ module Web.Auspex.Provider (
 where
 
 import ByteString.Aeson.Orphans ()
-import Control.Lens
+import Control.Lens hiding ((.=))
 import Crypto.Error (CryptoFailable (CryptoFailed, CryptoPassed))
 import Crypto.PubKey.Ed25519 qualified as Ed
 import Crypto.Random (MonadRandom (getRandomBytes))
 import Data.Aeson
+import Data.ByteArray qualified as BA
 import Data.ByteString.Base64 qualified as B64
 import Data.Challenge
+import Data.IP qualified as IP
 import Data.List (lookup)
 import Data.Time.Clock.POSIX
 import Network.HTTP.Types
 import Network.Wai
+import Network.Wai.Middleware.RealIp
 import Web.JWT qualified as JWT
 import Web.JWT.Encode
 
 newtype User = User {_ownerPublic :: Ed.PublicKey}
-  deriving stock (Show)
+  deriving stock (Generic, Show)
+
+instance ToJSON User where
+  toJSON (User k) = object ["key" .= B64.encode (BA.convert k)]
 
 type App = AuspexConfig -> AppState -> Application
 
@@ -39,7 +45,7 @@ data AuspexConfig = AppConfig
   }
 
 newtype AppState' = AppState'
-  { _users :: Map ByteString User
+  { _users :: Map Text User
   }
   deriving stock (Show)
 
@@ -62,9 +68,15 @@ auspexServer cfg st request respond = do
         Just s -> respond $ responseLBS status200 [] s
         Nothing -> respond500 respond
       _ -> respond405 respond
+    "status" : ps -> (realIp $ handleStatus ps cfg st) request respond
     _ -> respond404 respond
 
-respond404, respond405, respond500 :: forall {b}. (Response -> b) -> b
+respond403
+  , respond404
+  , respond405
+  , respond500 ::
+    forall {b}. (Response -> b) -> b
+respond403 respond = respond $ responseLBS status403 [] "Forbidden"
 respond404 respond = respond $ responseLBS status404 [] "Not found"
 respond405 respond = respond $ responseLBS status405 [] "Unsupported method"
 respond500 respond = respond $ responseLBS status500 [] "Internal Error"
@@ -77,7 +89,7 @@ handleRegistration _ st request respond = do
         k <- case Ed.publicKey key of
           CryptoPassed a -> Just a
           CryptoFailed _ -> Nothing
-        return (encodeUtf8 n, k)
+        return (n, k)
   case creds of
     Nothing -> respond $ responseLBS status400 [] "Can't parse response"
     Just (n, k) -> do
@@ -87,6 +99,19 @@ handleRegistration _ st request respond = do
         else do
           atomically $ modifyTVar' st $ set (users . at n) (Just $ User k)
           respond $ responseLBS status200 [] ""
+
+handleStatus :: [Text] -> App
+handleStatus ps _ st request respond = do
+  -- print $ remoteHost request
+  let allowed =
+        maybe
+          False
+          (\(i, _) -> any (ipInRange i) defaultTrusted)
+          (IP.fromSockAddr $ remoteHost request)
+  case (ps, allowed) of
+    (_, False) -> respond403 respond
+    (["users"], _) -> respond . responseLBS status200 [] . encode . _users =<< readTVarIO st
+    _ -> respond404 respond
 
 handleGet :: App
 handleGet cfg _ request respond = do
@@ -109,6 +134,7 @@ handlePost cfg st request respond = do
   resp <- fmap (either id id) $ runExceptT $ do
     providedName <-
       hoistMaybe' (responseLBS status400 [] "Missing Authorization header")
+        . fmap decodeUtf8
         . lookup hAuthorization
         $ requestHeaders request
     bod <- liftIO $ lazyRequestBody request
@@ -123,7 +149,7 @@ handlePost cfg st request respond = do
     let expirationTime = currentTime + 3600
     let claims =
           mempty
-            { JWT.sub = JWT.stringOrURI $ decodeUtf8 providedName
+            { JWT.sub = JWT.stringOrURI providedName
             , JWT.exp = JWT.numericDate expirationTime
             }
     let tok = JWT.encodeSigned (rsaEncoder cfg) mempty claims
