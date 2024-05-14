@@ -3,6 +3,7 @@
 
 module Foundation where
 
+import GHC.IO (unsafePerformIO)
 import Yesod.Auth
 import Yesod.Auth.Auspex
 import Yesod.Core
@@ -33,12 +34,20 @@ isLoggedIn = do
 instance RenderMessage App FormMessage where
   renderMessage _ _ = defaultFormMessage
 
+{-# NOINLINE provider #-}
+provider :: Text
+provider =
+  toText $
+    fromMaybe "http://localhost:8080" $
+      viaNonEmpty head $
+        unsafePerformIO getArgs
+
 instance YesodAuth App where
   type AuthId App = Text
   authenticate = return . Authenticated . credsIdent
   loginDest _ = HomeR
   logoutDest _ = HomeR
-  authPlugins _ = [authAuspex "http://localhost:8080"]
+  authPlugins _ = [authAuspex provider]
   maybeAuthId = lookupSession "_ID"
 
 instance YesodAuthAuspex App

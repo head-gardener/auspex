@@ -21,7 +21,7 @@
         haskellProjects.main = {
           # packages.auspex.root = ./.;  # Auto-discovered by haskell-flake
           devShell = {
-            hlsCheck.enable = true;
+            hlsCheck.enable = false;
           };
 
           settings =
@@ -74,6 +74,16 @@
             just
           ];
         };
+
+        checks = {
+          build = self'.packages.default;
+          test = import ./nix/test.nix inputs;
+        };
+
+      };
+
+      flake = {
+        nixosModules.default = import ./nix/module.nix inputs;
       };
     };
 }

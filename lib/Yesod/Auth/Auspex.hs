@@ -79,6 +79,7 @@ authAuspex provider = AuthPlugin "auspex" dispatch loginWidget
       token <-
         maybe (sendResponseStatus status400 ("No token" :: Text)) return
           =<< lookupGetParam "token"
+      print token
       case JWT.sub . JWT.claims =<< JWT.verify key =<< JWT.decode token of
         Just subj -> setCredsRedirect $ Creds "auspex" (JWT.stringOrURIToText subj) []
         Nothing -> sendResponseStatus status401 ("Invalid token" :: Text)
