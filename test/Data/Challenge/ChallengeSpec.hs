@@ -17,5 +17,5 @@ spec = do
     prep = do
       let edPath = "./data/ed25519"
       (sec, pub) <- readKeys edPath >>= maybe (die $ "Can't parse" <> edPath) return
-      chl <- newChallenge sec pub "token" "callback"
+      chl <- newChallenge sec pub "token" $ Just "callback"
       return (pub, sec, pub, chl)

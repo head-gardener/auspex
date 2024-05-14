@@ -13,12 +13,12 @@ synopsis:           Challenge-based authorization showcase
 -- bug-reports:
 
 extra-source-files:
-  LICENSE
-  README.md
   data/ed25519
   data/ed25519.pub
   data/rsa
   data/rsa.pub
+  LICENSE
+  README.md
 
 common shared
   ghc-options:

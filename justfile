@@ -8,6 +8,11 @@ docs:
 repl *ARGS:
     cabal repl {{ARGS}}
 
+release:
+    nix build
+
+pre-commit: fmt release
+
 fmt:
     treefmt
 

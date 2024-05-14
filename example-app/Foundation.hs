@@ -10,7 +10,9 @@ import Yesod.Form (FormMessage, defaultFormMessage)
 
 data App = App
 
-mkYesodData "App" [parseRoutes|
+mkYesodData
+  "App"
+  [parseRoutes|
 /              HomeR GET
 /auth          AuthR Auth getAuth
 |]

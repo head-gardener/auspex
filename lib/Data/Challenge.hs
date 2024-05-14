@@ -17,20 +17,20 @@ data Challenge = Challenge
   { ownerSignature :: Maybe ByteString
   , providerSignature :: ByteString
   , token :: ByteString
-  , callback :: ByteString
+  , callback :: Maybe ByteString
   , issued :: POSIXTime
   }
   deriving stock (Generic, Show)
 
 newChallenge ::
-  Ed.SecretKey -> Ed.PublicKey -> ByteString -> ByteString -> IO Challenge
+  Ed.SecretKey -> Ed.PublicKey -> ByteString -> Maybe ByteString -> IO Challenge
 newChallenge s p t c = do
   iss <- getPOSIXTime
   return $ fix $ \ch -> Challenge Nothing (BA.convert $ Ed.sign s p ch) t c iss
 
 instance ByteArrayAccess Challenge where
-  length Challenge {..} = BA.length $ fromString (show issued) <> callback <> token
-  withByteArray Challenge {..} = withByteArray $ fromString (show issued) <> callback <> token
+  length Challenge {..} = BA.length $ fromString (show issued) <> token
+  withByteArray Challenge {..} = withByteArray $ fromString (show issued) <> token
 
 -- bytestrings get encoded in base64 as per bytestring-aeson-orphans
 instance ToJSON Challenge where

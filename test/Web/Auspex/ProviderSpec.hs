@@ -16,6 +16,7 @@ import Test.Hspec
 import Test.Hspec.Wai
 import Web.Auspex.Provider
 import Web.JWT hiding (decode)
+import Web.JWT qualified as JWT
 import Web.JWT.Encode (encodeVerifier)
 import Prelude hiding (get)
 
@@ -56,9 +57,15 @@ spec = with newApp $ do
       get "/key" `shouldRespondWith` withJSON rsaPub
 
     it "can authorize a known user" $ do
-      ch <-
-        solve edSec edPub . fromJust . decode . simpleBody
-          <$> get "/?callback=callback"
+      ch <- getChallenge "/"
+      tok <- request methodPost "/" [(hAuthorization, "user")] (encode ch)
+      liftIO $ simpleStatus tok `shouldBe` status200
+      liftIO $
+        (isJust . JWT.decodeAndVerifySignature rsaPub . decodeUtf8 . simpleBody) tok
+          `shouldBe` True
+
+    it "can redirect after authorization" $ do
+      ch <- getChallenge "/?callback=callback"
       request methodPost "/" [(hAuthorization, "user")] (encode ch)
         `shouldRespondWith` "" {matchStatus = 303}
 
@@ -67,16 +74,12 @@ spec = with newApp $ do
         `shouldRespondWith` "Can't parse response" {matchStatus = 400}
       post "/register" (encode ("new-user" :: Text, BA.convert edPub :: ByteString))
         `shouldRespondWith` "" {matchStatus = 200}
-      ch <-
-        solve edSec edPub . fromJust . decode . simpleBody
-          <$> get "/?callback=callback"
+      ch <- getChallenge "/?callback=callback"
       request methodPost "/" [(hAuthorization, "new-user")] (encode ch)
         `shouldRespondWith` "" {matchStatus = 303}
 
     it "can detect challenge tampering" $ do
-      ch <-
-        solve edSec edPub . fromJust . decode . simpleBody
-          <$> get "/?callback=callback"
+      ch <- getChallenge "/?callback=callback"
       request methodPost "/" [(hAuthorization, "user")] (encode ch {issued = 0})
         `shouldRespondWith` "BAD" {matchStatus = 400}
   where
@@ -86,6 +89,9 @@ spec = with newApp $ do
         . toStrict
         . fromJust
         . encodeVerifier
+
+    getChallenge :: ByteString -> WaiSession () Challenge
+    getChallenge t = solve edSec edPub . fromJust . decode . simpleBody <$> get t
 
 -- it "is idempotent" $
 --   property $

@@ -90,11 +90,10 @@ handleRegistration _ st request respond = do
 handleGet :: App
 handleGet cfg _ request respond = do
   resp <- fmap (either id id) $ runExceptT $ do
-    cb <-
-      hoistMaybe' (responseLBS status400 [] "Missing callback parameter")
-        . join
-        . lookup "callback"
-        $ queryString request
+    let cb =
+          join
+            . lookup "callback"
+            $ queryString request
     -- we don't need a CSPRNG here, right?
     tok <- B64.encode <$> liftIO (getRandomBytes 63)
     challenge <- liftIO $ newChallenge (edSecretKey cfg) (edPublicKey cfg) tok cb
@@ -127,8 +126,9 @@ handlePost cfg st request respond = do
             , JWT.exp = JWT.numericDate expirationTime
             }
     let tok = JWT.encodeSigned (rsaEncoder cfg) mempty claims
-    let cb = callback chl <> "/?token=" <> encodeUtf8 tok
-    if verify (edPublicKey cfg) clientKey chl
-      then return (responseLBS status303 [(hLocation, cb)] "")
-      else return (responseLBS status400 [] "BAD")
+    let cb = (<> "/?token=" <> encodeUtf8 tok) <$> callback chl
+    case (verify (edPublicKey cfg) clientKey chl, cb) of
+      (False, _) -> return (responseLBS status400 [] "BAD")
+      (True, Just cb') -> return (responseLBS status303 [(hLocation, cb')] "")
+      (True, Nothing) -> return (responseLBS status200 [] $ encodeUtf8 tok)
   respond resp
