@@ -1,0 +1,21 @@
+@startuml
+class Challenge {
+  +ownerSignature: Maybe ByteString
+  +providerSignature: ByteString
+  +token: ByteString
+  +callback: Maybe ByteString
+  +issued: POSIXTime
+}
+
+class NewChallenge {
+  +s: Ed.SecretKey
+  +p: Ed.PublicKey
+  +t: ByteString
+  +c: Maybe ByteString
+}
+
+NewChallenge --> Challenge: Creates
+Challenge "1" *-- "*" ToJSON: Implements
+Challenge "1" *-- "*" FromJSON: Implements
+Challenge "1" *-- "*" verify: Uses
+@enduml

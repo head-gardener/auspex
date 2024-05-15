@@ -1,0 +1,31 @@
+@startuml
+actor User
+participant "Web Browser" as Browser
+participant "Yesod Application" as App
+database "Site Storage" as Storage
+
+User -> Browser: Enter Login Page
+Browser -> App: Request Login Widget
+App -> App: Render Login Widget
+App -> Browser: Display Login Widget
+User -> Browser: Click Login Button
+Browser -> User: Prompt for Authentication Token
+Browser -> App: Submit Login Form
+App -> Storage: Get Verifier from cache
+alt Cache hit
+    App -> App: Use cached Verifier
+else Cache miss
+    App -> App: Fetch Verifier from Provider
+    App -> App: Store Verifier in Storage
+    App -> App: Return Verifier
+end
+App -> App: Verify JWT Token
+alt Token is valid
+    App -> App: Extract Subject from Verified Token
+    App -> App: Redirect User with Credentials
+    App -> Browser: Redirected to Home Page
+else Token is invalid
+    App -> Browser: Authentication failure
+end
+Browser -> User: Display result
+@enduml

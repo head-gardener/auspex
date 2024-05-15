@@ -1,0 +1,20 @@
+@startuml
+class Client {
+  +networking.firewall.allowedTCPPorts: [3000]
+  +example-app(provider: String)
+}
+
+class Owner {
+  +ssh-keygen: Function
+  +auspex-client(user: String, url: String, key: String): String
+  +curl(url: String): Void
+}
+
+class Provider {
+  +services.auspex: {...}
+}
+
+Client --> Client : Runs Example App
+Owner --> Provider : Registers and authorizes, receiving a token
+Owner --> Client : Authenticates using the token
+@enduml

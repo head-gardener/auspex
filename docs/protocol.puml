@@ -1,0 +1,14 @@
+@startuml
+actor Client
+participant Server
+
+alt Registration required
+Client -> Server: Register(username, publicKey)
+end
+Server -> Server: Generate and sign a challenge
+Server -> Client: Send challenge
+Client -> Client: SolveChallenge(challenge)
+Client -> Server: Send solved challenge
+Server -> Server: Verify solution and own signarure
+Server -> Client: Send JWT
+@enduml
