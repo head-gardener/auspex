@@ -62,6 +62,24 @@
         };
 
         packages.default = self'.packages.main-auspex;
+        packages.auspex-docker = pkgs.dockerTools.buildImage {
+          name = "auspex-docker";
+
+          config = {
+            Cmd = [ "auspex" ];
+            ExposedPorts = {
+              "8080/tcp" = { };
+            };
+          };
+
+          copyToRoot = pkgs.buildEnv {
+            name = "image-root";
+            paths = with pkgs; [
+              self'.packages.main-auspex
+            ];
+            pathsToLink = [ "/bin" ];
+          };
+        };
 
         devShells.default = pkgs.mkShell {
           name = "haskell-template";
