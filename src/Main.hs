@@ -3,6 +3,7 @@ module Main (main) where
 import Crypto.PubKey.Ed25519.OpenSSH
 import Network.Wai.Handler.Warp (run)
 import Network.Wai.Middleware.HealthCheckEndpoint (healthCheck)
+import Network.Wai.Middleware.RealIp (realIp)
 import Network.Wai.Middleware.RequestLogger
 import Web.Auspex.Provider
 import Web.JWT qualified as JWT
@@ -33,4 +34,4 @@ main = do
   st <- newTVarIO $ AppState' mempty
   let cfg = AppConfig sec pub rsaS rsaV
   putStrLn $ "Serving on " <> show port
-  run port $ logStdout $ healthCheck $ auspexServer cfg st
+  run port $ realIp $ logStdout $ healthCheck $ auspexServer cfg st
