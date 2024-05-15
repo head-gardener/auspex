@@ -102,6 +102,9 @@
 
       flake = {
         nixosModules.default = import ./nix/module.nix inputs;
+
+
+        hydraJobs.x86_64-linux = self.checks.x86_64-linux;
       };
     };
 }
